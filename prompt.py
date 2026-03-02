@@ -7,17 +7,11 @@ import os
 # If using the Vocareum API endpoint
 # TODO: Fill in the missing parts marked with **********
 
-client = OpenAI(
-    base_url="https://openai.vocareum.com/v1",
-    # Uncomment one of the following
-    #api_key="voc-1715525521160736486273269a447919c35c2.79378226",  # <--- TODO: Fill in your Vocareum API key here
-    api_key=os.getenv(
-        "OPENAI_API_KEY"
-    ),  # <-- Alternately, set as an environment variable
-)
+
+api_key=os.getenv("OPENAI_API_KEY")
 
 # If using OpenAI's API endpoint
-client = OpenAI()
+client = OpenAI(api_key=api_key)
 
 # No changes needed in this cell
 from enum import Enum
@@ -61,7 +55,7 @@ def get_completion(system_prompt, user_prompt, model=MODEL):
         return f"An error occurred: {e}"
 
 
-def display_responses(*args):
+'''def display_responses(*args):
     """Helper function to display responses as Markdown, horizontally."""
     markdown_string = "<table><tr>"
     # Headers
@@ -74,7 +68,36 @@ def display_responses(*args):
     for arg in args:
         markdown_string += f"<td>Response:<br />{arg['response']}</td>"
     markdown_string += "</tr></table>"
-    display(Markdown(markdown_string))
+    display(Markdown(markdown_string))'''
+
+# ...existing code...
+def display_responses(*args):
+    """Helper function to display responses as Markdown in notebooks, or plain text in terminal."""
+    try:
+        # detect IPython environment
+        from IPython import get_ipython
+        if get_ipython() is None:
+            raise RuntimeError("Not in IPython")
+        markdown_string = "<table><tr>"
+        # Headers
+        for arg in args:
+            markdown_string += f"<th>System Prompt:<br />{arg['system_prompt']}<br /><br />"
+            markdown_string += f"User Prompt:<br />{arg['user_prompt']}</th>"
+        markdown_string += "</tr>"
+        # Rows
+        markdown_string += "<tr>"
+        for arg in args:
+            markdown_string += f"<td>Response:<br />{arg['response']}</td>"
+        markdown_string += "</tr></table>"
+        display(Markdown(markdown_string))
+    except Exception:
+        # fallback for plain Python: print readable text
+        for i, arg in enumerate(args, start=1):
+            print(f"\n--- Response {i} ---")
+            print("System Prompt:", arg.get("system_prompt"))
+            print("User Prompt:", arg.get("user_prompt"))
+            print("Response:\n", arg.get("response"))
+# ...existing code...
 
 
 # No changes needed in this cell
@@ -85,13 +108,13 @@ print(f"Sending prompt to {MODEL} model...")
 baseline_response = get_completion(plain_system_prompt, user_prompt)
 print("Response received!\n")
 
-'''display_responses(
+display_responses(
     {
         "system_prompt": plain_system_prompt,
         "user_prompt": user_prompt,
         "response": baseline_response,
     }
-)'''
+)
 
 # TODO: Write a system prompt starting with "You are..." replacing the ***********
 role_system_prompt = "You are an expert professional organizer and productivity coach"
@@ -101,7 +124,7 @@ role_response = get_completion(role_system_prompt, user_prompt)
 print("Response received!\n")
 
 # Show last two prompts and responses
-'''display_responses(
+display_responses(
     {
         "system_prompt": plain_system_prompt,
         "user_prompt": user_prompt,
@@ -112,7 +135,7 @@ print("Response received!\n")
         "user_prompt": user_prompt,
         "response": role_response,
     },
-)'''
+)
 
 # TODO: Write a constraints system prompt replacing the ***********
 constraints_system_prompt = f""" {role_system_prompt}. The plan must be achievable in one hour and require no purchases, using only existing household items."""
@@ -122,7 +145,7 @@ constraints_response = get_completion(constraints_system_prompt, user_prompt)
 print("Response received!\n")
 
 # Show last two prompts and responses
-'''display_responses(
+display_responses(
     {
         "system_prompt": role_system_prompt,
         "user_prompt": user_prompt,
@@ -133,7 +156,7 @@ print("Response received!\n")
         "user_prompt": user_prompt,
         "response": constraints_response,
     },
-)'''
+)
 
 
 # TODO: Ask the LLM to explain its reasoning step by step, replacing the ***********
@@ -146,7 +169,7 @@ reasoning_response = get_completion(reasoning_system_prompt, user_prompt)
 print("Response received!\n")
 
 # Display the last two prompts and responses
-'''display_responses(
+display_responses(
     {
         "system_prompt": constraints_system_prompt,
         "user_prompt": user_prompt,
@@ -157,4 +180,4 @@ print("Response received!\n")
         "user_prompt": user_prompt,
         "response": reasoning_response,
     },
-)'''
+)
